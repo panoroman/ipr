@@ -1,5 +1,17 @@
-FROM openjdk:21-jdk-slim
+FROM gradle:8.5.0-jdk21 as build
 
-COPY /build/libs/ipr-0.0.1-SNAPSHOT.jar  /ipr-0.0.1-SNAPSHOT.jar
+WORKDIR /workspace
 
-CMD ["java", "-jar", "/ipr-0.0.1-SNAPSHOT.jar"]
+COPY src src
+COPY build.gradle build.gradle
+COPY settings.gradle settings.gradle
+
+RUN gradle clean build
+
+FROM bellsoft/liberica-openjdk-debian:21.0.1
+
+WORKDIR /app
+
+COPY --from=build /workspace/build/libs/ipr-0.0.1-SNAPSHOT.jar  ./ipr.jar
+
+CMD ["java", "-jar", "ipr.jar"]
